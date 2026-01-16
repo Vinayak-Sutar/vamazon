@@ -8,7 +8,7 @@ Requires authentication - user must be logged in to place orders.
 """
 
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 import uuid
@@ -32,6 +32,7 @@ def generate_order_number() -> str:
 @router.post("/", response_model=OrderSchema)
 def create_order(
     order_data: OrderCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_auth)  # Requires login!
 ):
@@ -100,33 +101,31 @@ def create_order(
         joinedload(Order.items).joinedload(OrderItem.product)
     ).filter(Order.id == order.id).first()
 
-    # Send confirmation email
-    try:
-        order_items_for_email = [
-            {
-                "name": item.product.name,
-                "quantity": item.quantity,
-                "price": float(item.price_at_purchase) * item.quantity,
-                "image_url": item.product.image_url
-            }
-            for item in order.items
-        ]
-        send_order_confirmation_email(
-            to_email=order.email,
-            customer_name=order.customer_name,
-            order_number=order.order_number,
-            order_items=order_items_for_email,
-            total_amount=float(order.total_amount),
-            shipping_address={
-                "address_line1": order.address_line1,
-                "address_line2": order.address_line2,
-                "city": order.city,
-                "state": order.state,
-                "pincode": order.pincode
-            }
-        )
-    except Exception as e:
-        print(f"Email sending failed: {e}")  # Don't fail order if email fails
+    # Send confirmation email in background (non-blocking)
+    order_items_for_email = [
+        {
+            "name": item.product.name,
+            "quantity": item.quantity,
+            "price": float(item.price_at_purchase) * item.quantity,
+            "image_url": item.product.image_url
+        }
+        for item in order.items
+    ]
+    background_tasks.add_task(
+        send_order_confirmation_email,
+        to_email=order.email,
+        customer_name=order.customer_name,
+        order_number=order.order_number,
+        order_items=order_items_for_email,
+        total_amount=float(order.total_amount),
+        shipping_address={
+            "address_line1": order.address_line1,
+            "address_line2": order.address_line2,
+            "city": order.city,
+            "state": order.state,
+            "pincode": order.pincode
+        }
+    )
 
     return order
 
@@ -161,6 +160,7 @@ class BuyNowCreate(BaseModel):
 @router.post("/buy-now", response_model=OrderSchema)
 def create_buy_now_order(
     order_data: BuyNowCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_auth)
 ):
@@ -220,32 +220,30 @@ def create_buy_now_order(
         joinedload(Order.items).joinedload(OrderItem.product)
     ).filter(Order.id == order.id).first()
 
-    # Send confirmation email
-    try:
-        order_items_for_email = [
-            {
-                "name": product.name,
-                "quantity": order_data.quantity,
-                "price": float(product.price) * order_data.quantity,
-                "image_url": product.image_url
-            }
-        ]
-        send_order_confirmation_email(
-            to_email=order.email,
-            customer_name=order.customer_name,
-            order_number=order.order_number,
-            order_items=order_items_for_email,
-            total_amount=float(order.total_amount),
-            shipping_address={
-                "address_line1": order.address_line1,
-                "address_line2": order.address_line2,
-                "city": order.city,
-                "state": order.state,
-                "pincode": order.pincode
-            }
-        )
-    except Exception as e:
-        print(f"Email sending failed: {e}")  # Don't fail order if email fails
+    # Send confirmation email in background (non-blocking)
+    order_items_for_email = [
+        {
+            "name": product.name,
+            "quantity": order_data.quantity,
+            "price": float(product.price) * order_data.quantity,
+            "image_url": product.image_url
+        }
+    ]
+    background_tasks.add_task(
+        send_order_confirmation_email,
+        to_email=order.email,
+        customer_name=order.customer_name,
+        order_number=order.order_number,
+        order_items=order_items_for_email,
+        total_amount=float(order.total_amount),
+        shipping_address={
+            "address_line1": order.address_line1,
+            "address_line2": order.address_line2,
+            "city": order.city,
+            "state": order.state,
+            "pincode": order.pincode
+        }
+    )
 
     return order
 

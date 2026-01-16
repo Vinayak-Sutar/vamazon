@@ -185,8 +185,8 @@ def send_order_confirmation_email(
         msg.attach(MIMEText(text_content, 'plain'))
         msg.attach(MIMEText(html_content, 'html'))
 
-        # Send email
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        # Send email with timeout
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30) as server:
             server.starttls()
             server.login(SENDER_EMAIL, SENDER_PASSWORD)
             server.send_message(msg)
