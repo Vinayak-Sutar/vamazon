@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/**
+ * Vamazon - Light Theme Only
+ * ================================
+ * Force light color scheme to prevent browser dark mode from affecting text.
+ */
+
+:root {
+  color-scheme: light only;
+}
+
+html {
+  color-scheme: light only;
+}
+
+/* Base body background */
+body {
+  background-color: #eaeded;
+}
+
+/* Main content area styling */
+main {
+  background-color: #eaeded;
+  color: #0f1111;
+}
+
+/* CRITICAL: Buttons in main content must have dark text */
+main button,
+main a.block {
+  color: #0f1111 !important;
+}
+
+/* CRITICAL: Header must have white text - override any dark mode */
+header {
+  color: white !important;
+}
+
+/* Specific header text elements - white */
+header>div span,
+header>div a,
+header>div button,
+header>div p {
+  color: white !important;
+}
+
+/* EXCEPTION: Dropdown menu should have dark text */
+.dropdown-menu,
+.dropdown-menu * {
+  color: #0f1111 !important;
+}
+
+/* Orange accent text in header only */
+header [class*="febd69"] {
+  color: #febd69 !important;
+}
+
+/* Gray text in header */
+header .text-gray-300 {
+  color: rgb(209, 213, 219) !important;
+}
+
+/* CRITICAL: Footer must have white text */
+footer {
+  color: white !important;
+}
+
+footer * {
+  color: inherit !important;
+}
+
+footer span,
+footer a,
+footer button,
+footer p,
+footer div,
+footer h3,
+footer li {
+  color: white !important;
+}
+
+footer .text-gray-300 {
+  color: rgb(209, 213, 219) !important;
+}
+
+footer .text-gray-400 {
+  color: rgb(156, 163, 175) !important;
+}
+
+footer .text-gray-500 {
+  color: rgb(107, 114, 128) !important;
+}
+
+/* Search input should have dark text */
+header input {
+  color: #0f1111 !important;
+}
+
+header select {
+  color: #0f1111 !important;
+}
+
+/* Search button icon */
+header button svg {
+  color: #0f1111 !important;
+}
+
+/* Cart icon and menu icon should be white */
+header a svg,
+header button.md\:hidden svg {
+  stroke: white !important;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
