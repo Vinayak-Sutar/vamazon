@@ -2,19 +2,16 @@
 Email Service for Order Notifications
 ======================================
 
-Uses Gmail SMTP to send order confirmation emails.
+Uses SendGrid API to send order confirmation emails.
 """
 
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail, Email, To, Content, MimeType
 
 # Email Configuration - Use environment variables in production
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SENDER_EMAIL = os.getenv("SMTP_EMAIL", "hilariousheisenberg@gmail.com")
-SENDER_PASSWORD = os.getenv("SMTP_PASSWORD", "zrqv fwgr sopb rbsj")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL", "hilariousheisenberg@gmail.com")
 SENDER_NAME = "Vamazon"
 
 
@@ -41,12 +38,6 @@ def send_order_confirmation_email(
         True if email sent successfully, False otherwise
     """
     try:
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"Order Confirmed - {order_number} | Vamazon"
-        msg['From'] = f"{SENDER_NAME} <{SENDER_EMAIL}>"
-        msg['To'] = to_email
-
         # Build items HTML
         items_html = ""
         for item in order_items:
@@ -143,7 +134,7 @@ def send_order_confirmation_email(
                     
                     <!-- CTA Button -->
                     <div style="text-align: center; margin-top: 30px;">
-                        <a href="http://localhost:3000/orders" 
+                        <a href="https://vamazon-frontend.onrender.com/orders" 
                            style="display: inline-block; background-color: #ffd814; color: #0f1111; 
                                   padding: 12px 30px; text-decoration: none; border-radius: 20px; 
                                   font-weight: bold; font-size: 14px;">
@@ -181,17 +172,21 @@ def send_order_confirmation_email(
         Thank you for shopping with Vamazon!
         """
 
-        # Attach both versions
-        msg.attach(MIMEText(text_content, 'plain'))
-        msg.attach(MIMEText(html_content, 'html'))
+        # Create SendGrid message
+        message = Mail(
+            from_email=Email(SENDER_EMAIL, SENDER_NAME),
+            to_emails=To(to_email),
+            subject=f"Order Confirmed - {order_number} | Vamazon"
+        )
+        message.add_content(Content(MimeType.text, text_content))
+        message.add_content(Content(MimeType.html, html_content))
 
-        # Send email with timeout
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=30) as server:
-            server.starttls()
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.send_message(msg)
+        # Send email via SendGrid
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
 
-        print(f"✓ Order confirmation email sent to {to_email}")
+        print(
+            f"✓ Order confirmation email sent to {to_email} (status: {response.status_code})")
         return True
 
     except Exception as e:

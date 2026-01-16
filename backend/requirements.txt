@@ -23,3 +23,6 @@ pyarrow==18.1.0
 # Authentication
 python-jose[cryptography]==3.3.0  # JWT tokens
 passlib[bcrypt]==1.7.4            # Password hashing
+
+# Email
+sendgrid==6.11.0                  # SendGrid email API
