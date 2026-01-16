@@ -58,8 +58,15 @@ async def lifespan(app: FastAPI):
     try:
         existing_products = db.query(Product).count()
         if existing_products == 0:
-            print("📂 Database is empty, seeding data...")
-            seed_database(db)
+            print("📂 Database is empty, attempting to seed data...")
+            try:
+                seed_database(db)
+            except FileNotFoundError as e:
+                print(f"⚠️  Dataset file not found: {e}")
+                print("   App will start without products. Seed manually later.")
+            except Exception as e:
+                print(f"⚠️  Seeding failed: {e}")
+                print("   App will start without products. Seed manually later.")
         else:
             print(f"✅ Database already has {existing_products} products")
     finally:
@@ -129,9 +136,18 @@ def seed_database(db):
         except:
             return ""
 
+    # Sample laptop images for the carousel feature
+    LAPTOP_SAMPLE_IMAGES = [
+        "https://m.media-amazon.com/images/I/71jG+e7roXL._SL1500_.jpg",
+        "https://m.media-amazon.com/images/I/71TPda7cwUL._SL1500_.jpg",
+        "https://m.media-amazon.com/images/I/71lZKALdgEL._SL1500_.jpg",
+        "https://m.media-amazon.com/images/I/61Qe0euJJZL._SL1500_.jpg",
+        "https://m.media-amazon.com/images/I/71c5W9NxN5L._SL1500_.jpg",
+    ]
+
     try:
-        # Read the parquet file
-        parquet_path = Path(__file__).parent.parent / "dataset" / \
+        # Read the parquet file - dataset is at project root, not in backend
+        parquet_path = Path(__file__).parent.parent.parent / "dataset" / \
             "train-00000-of-00001-20688441520ba9b3.parquet"
         print(f"📂 Reading data from: {parquet_path}")
 
@@ -182,6 +198,16 @@ def seed_database(db):
                 is_primary=True
             )
             db.add(product_image)
+
+            # Add sample images for laptop_computer category for image carousel
+            if row['category'] == 'laptop_computer':
+                for sample_img in LAPTOP_SAMPLE_IMAGES:
+                    extra_image = ProductImage(
+                        product_id=product.id,
+                        image_url=sample_img,
+                        is_primary=False
+                    )
+                    db.add(extra_image)
 
         db.commit()
         print(
