@@ -140,7 +140,6 @@ def seed_database(db):
     LAPTOP_SAMPLE_IMAGES = [
         "https://m.media-amazon.com/images/I/71jG+e7roXL._SL1500_.jpg",
         "https://m.media-amazon.com/images/I/71TPda7cwUL._SL1500_.jpg",
-        "https://m.media-amazon.com/images/I/71lZKALdgEL._SL1500_.jpg",
         "https://m.media-amazon.com/images/I/61Qe0euJJZL._SL1500_.jpg",
         "https://m.media-amazon.com/images/I/71c5W9NxN5L._SL1500_.jpg",
     ]
