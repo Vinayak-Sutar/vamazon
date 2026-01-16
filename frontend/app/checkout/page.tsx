@@ -10,7 +10,7 @@
  * - Place Order button
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,7 +34,7 @@ function getSessionId(): string {
     return localStorage.getItem('cart_session_id') || '';
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { cart, itemCount, subtotal, clearCart } = useCart();
@@ -381,5 +381,17 @@ export default function CheckoutPage() {
                 </div>
             </form>
         </div>
+    );
+}
+
+export default function CheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#febd69]"></div>
+            </div>
+        }>
+            <CheckoutContent />
+        </Suspense>
     );
 }

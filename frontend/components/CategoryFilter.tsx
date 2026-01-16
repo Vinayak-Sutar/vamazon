@@ -8,6 +8,7 @@
  * Uses client-side navigation for instant feedback.
  */
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Category } from '@/types';
 
@@ -16,7 +17,7 @@ interface CategoryFilterProps {
     currentCategory?: string;
 }
 
-export default function CategoryFilter({ categories, currentCategory }: CategoryFilterProps) {
+function CategoryFilterContent({ categories, currentCategory }: CategoryFilterProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -55,5 +56,18 @@ export default function CategoryFilter({ categories, currentCategory }: Category
                 ))}
             </select>
         </div>
+    );
+}
+
+export default function CategoryFilter({ categories, currentCategory }: CategoryFilterProps) {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Category:</span>
+                <div className="w-32 h-8 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+        }>
+            <CategoryFilterContent categories={categories} currentCategory={currentCategory} />
+        </Suspense>
     );
 }
